@@ -439,6 +439,17 @@ input[type="color"].cpick::-webkit-color-swatch { border: none; border-radius: 3
           <input type="number" id="xStep" value="0.1" step="0.05" min="0.001">
         </div>
       </div>
+      <div class="axlabel" style="margin-top:6px">Y axis range</div>
+      <div class="axis-grid" style="grid-template-columns:1fr 1fr;">
+        <div class="afield">
+          <label>Min</label>
+          <input type="number" id="yMin" value="0" step="1">
+        </div>
+        <div class="afield">
+          <label>Max</label>
+          <input type="number" id="yMax" value="270" step="1">
+        </div>
+      </div>
       <p class="helptext" id="helptext">var: DeltaTemp &nbsp;·&nbsp; fns: min max abs sqrt pow floor ceil round constrain map</p>
     </div>
   </aside>
@@ -458,6 +469,7 @@ const IC = {
 
 // ── axis state ─────────────────────────────────────────────
 let xMin = -2, xMax = 10, xStep = 0.1;
+let yMin = 0, yMax = 270;
 let xVarName = 'DeltaTemp';
 
 // ── expression parser (no eval / Function — CSP safe) ──────
@@ -667,10 +679,8 @@ const chart = new Chart(document.getElementById('mc').getContext('2d'), {
         min: 0, max: 270,
         border: { display: false },
         grid: { color: GRID_COL },
-        ticks: { color: TICK_COL, font: MONO, stepSize: 50,
-          callback: v => v <= 255 ? v : null },
-        title: { display: true, text: 'PWM (0–255)', color: TICK_COL,
-          font: { ...MONO, size: 11 }, padding: { right: 6 } }
+        ticks: { color: TICK_COL, font: MONO, stepSize: 50 },
+        title: { display: false }
       }
     },
     plugins: {
@@ -752,6 +762,8 @@ function updateAll() {
   chart.options.scales.x.min = xMin;
   chart.options.scales.x.max = xMax;
   chart.options.scales.x.title.text = xVarName;
+  chart.options.scales.y.min = yMin;
+  chart.options.scales.y.max = yMax;
   chart.update();
 
   // sync placeholders and help text
@@ -779,13 +791,15 @@ document.getElementById('xVarName').addEventListener('input', e => {
   }
 });
 
-['xMin','xMax','xStep'].forEach(id => {
+['xMin','xMax','xStep','yMin','yMax'].forEach(id => {
   document.getElementById(id).addEventListener('change', e => {
     const v = parseFloat(e.target.value);
     if (isNaN(v)) return;
-    if (id === 'xMin') xMin = v;
-    else if (id === 'xMax') xMax = v;
-    else xStep = Math.max(0.001, v);
+    if      (id === 'xMin')  xMin  = v;
+    else if (id === 'xMax')  xMax  = v;
+    else if (id === 'xStep') xStep = Math.max(0.001, v);
+    else if (id === 'yMin')  yMin  = v;
+    else if (id === 'yMax')  yMax  = v;
     updateAll();
   });
 });
