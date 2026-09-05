@@ -703,6 +703,80 @@ const chart = new Chart(document.getElementById('mc').getContext('2d'), {
   }
 });
 
+// ── persistence ────────────────────────────────────────────
+const STORAGE_KEY = 'aml-state';
+
+function saveState() {
+  try {
+    const formulas = Array.from(document.querySelectorAll('.frow')).map(row => ({
+      color: row.querySelector('.cpick').value,
+      text:  row.querySelector('.fcode').value,
+    }));
+    const variables = Array.from(document.querySelectorAll('#vrows .vrow')).map(row => ({
+      name:  row.querySelector('.vname').value,
+      value: row.querySelector('.vval').value,
+    }));
+    const state = {
+      formulas,
+      variables,
+      arduinoCode: document.getElementById('arduinoCode').value,
+      xVarName,
+      xMin, xMax, xStep,
+      yMin, yMax,
+      theme: dark ? 'dark' : 'light',
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch {}
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const s = JSON.parse(raw);
+
+    // formulas
+    if (Array.isArray(s.formulas)) {
+      const rows = document.querySelectorAll('.frow');
+      s.formulas.forEach((f, i) => {
+        if (!rows[i]) return;
+        rows[i].querySelector('.cpick').value = f.color || '#4ade80';
+        rows[i].querySelector('.fcode').value = f.text  || '';
+      });
+    }
+
+    // variables
+    if (Array.isArray(s.variables)) {
+      const vrows = document.querySelectorAll('#vrows .vrow');
+      s.variables.forEach((v, i) => {
+        if (!vrows[i]) return;
+        vrows[i].querySelector('.vname').value = v.name  ?? '';
+        vrows[i].querySelector('.vval').value  = v.value ?? '';
+      });
+    }
+
+    // arduino code
+    if (s.arduinoCode !== undefined)
+      document.getElementById('arduinoCode').value = s.arduinoCode;
+
+    // x var name
+    if (s.xVarName && /^[A-Za-z_][A-Za-z0-9_]*$/.test(s.xVarName)) {
+      xVarName = s.xVarName;
+      document.getElementById('xVarName').value = s.xVarName;
+    }
+
+    // axis ranges
+    if (s.xMin  !== undefined) { xMin  = s.xMin;  document.getElementById('xMin').value  = s.xMin; }
+    if (s.xMax  !== undefined) { xMax  = s.xMax;  document.getElementById('xMax').value  = s.xMax; }
+    if (s.xStep !== undefined) { xStep = s.xStep; document.getElementById('xStep').value = s.xStep; }
+    if (s.yMin  !== undefined) { yMin  = s.yMin;  document.getElementById('yMin').value  = s.yMin; }
+    if (s.yMax  !== undefined) { yMax  = s.yMax;  document.getElementById('yMax').value  = s.yMax; }
+
+    // theme — applied before updateAll so the chart renders in the right mode
+    if (s.theme === 'dark' || s.theme === 'light') setTheme(s.theme === 'dark');
+  } catch {}
+}
+
 // ── update from DOM ────────────────────────────────────────
 function updateAll() {
   const xs = xVals();
@@ -776,6 +850,8 @@ function updateAll() {
   document.getElementById('legend').innerHTML = legendItems.map(l =>
     `<div class="litem"><div class="lswatch" style="background:${l.color}"></div><span>${l.label}</span></div>`
   ).join('');
+
+  saveState();
 }
 
 // ── listeners ──────────────────────────────────────────────
@@ -814,9 +890,10 @@ function setTheme(d) {
   themeBtn.innerHTML = d ? IC.sun : IC.moon;
 }
 
-themeBtn.addEventListener('click', () => setTheme(!dark));
+themeBtn.addEventListener('click', () => { setTheme(!dark); saveState(); });
 setTheme(dark);
 
 // ── init ───────────────────────────────────────────────────
+loadState();
 updateAll();
 </script>
