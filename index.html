@@ -77,7 +77,11 @@ h1 { font-size: 14px; font-weight: 600; letter-spacing: -0.01em; }
   display: flex; flex-direction: column;
   background: var(--panel);
   border-right: 1px solid var(--border);
+  overflow-y: auto;
 }
+
+.panel::-webkit-scrollbar { width: 3px; }
+.panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
 .panel-label {
   padding: 10px 14px 6px;
@@ -89,15 +93,12 @@ h1 { font-size: 14px; font-weight: 600; letter-spacing: -0.01em; }
 
 /* formula rows */
 .frows {
-  flex: 1; min-height: 0;
-  overflow-y: auto;
+  flex: 0 0 auto;
   padding: 0 14px 10px;
   display: flex;
   flex-direction: column;
   gap: 5px;
 }
-.frows::-webkit-scrollbar { width: 3px; }
-.frows::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
 .frow {
   display: flex;
